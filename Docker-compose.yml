@@ -1,0 +1,35 @@
+# docker-compose.yml
+version: '2.8'
+
+services:
+  # Our Node.js API service
+  api:
+    build: . # Build the image from the Dockerfile in the current directory
+    ports:
+      - "3000:3000" # Map host port 3000 to container port 3000
+    volumes:
+      # Mount the host's src directory to the container's /app/src
+      # This enables live-reloading with nodemon
+      - ./src:/app/src
+    environment:
+      - PORT=3000
+      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/${MONGO_DATABASE}?authSource=admin
+    depends_on:
+      - mongo # Tells Docker to start the mongo service before the api service
+
+  # The MongoDB database service
+  mongo:
+    image: mongo:latest # Use the official MongoDB image from Docker Hub
+    ports:
+      - "27017:27017" # Expose the default MongoDB port
+    volumes:
+      - mongo-data:/data/db # Persist database data
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_DATABASE=${MONGO_DATABASE}
+      - TZ=Asia/Phnom_Penh
+
+volumes:
+  # Define a named volume for data persistence
+  mongo-data:
