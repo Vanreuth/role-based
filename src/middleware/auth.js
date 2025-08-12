@@ -2,17 +2,26 @@ const jwt = require("jsonwebtoken")
 const asyncHandler = require("express-async-handler");
 const User = require('../models/user.js');
 
-const verifyToken = (req, res, next) => {
-    // Extract token from request header from clinet
-    let token = req.header("Authorization")
+const authenticate = async (req, res, next) => {
+  try {
+     const token = req.header('Authorization')?.replace('Bearer ', '');
+    
     if (!token) {
-        return res.status(401).json({ error: "Access denied!" })
+      return res.status(401).json({ message: 'Access denied. No token provided.' });
     }
-    token = token.replace("Bearer ", "")
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    req.user = decoded
-    next()
-}
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).populate('role');
+    
+    if (!user || !user.isActive) {
+      return res.status(401).json({ error: 'Invalid token or inactive user.' });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid token.' });
+  }
+};
 const verifyRefresh = asyncHandler(async (req, res, next) => {
   const token = req.headers.authorization;
   if (!token) {
@@ -27,4 +36,4 @@ const verifyRefresh = asyncHandler(async (req, res, next) => {
 
 
 
-module.exports = { verifyToken , verifyRefresh };
+module.exports = { authenticate, verifyRefresh};
