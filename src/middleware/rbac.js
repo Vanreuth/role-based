@@ -23,7 +23,6 @@ const authorize = (requiredPermission) => {
           message: 'Access denied. Insufficient permissions.',
           required: requiredPermission,
           userRole: userRole.name,
-          userPermissions: userPermissions
         });
       }
       next();

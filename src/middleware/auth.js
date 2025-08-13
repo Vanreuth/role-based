@@ -11,11 +11,9 @@ const authenticate = async (req, res, next) => {
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id).populate('role');
-    
     if (!user || !user.isActive) {
       return res.status(401).json({ error: 'Invalid token or inactive user.' });
     }
-
     req.user = user;
     next();
   } catch (error) {

@@ -1,10 +1,9 @@
-const User = require('../models/user');
+
 const Role = require('../models/role');
-const { getAllUsers,getUserById,createUser,updateUser} =require("../services/userServices.js");
+const { getAllUsers,getUserById,createUser,updateUser,deleteUser} =require("../services/userServices.js");
 const asyncHandler = require('express-async-handler');
 
 const getAllUser = asyncHandler(async (req, res) => {
-
         const options = {
          page: parseInt(req.query.page) || 1,
         limit: parseInt(req.query.limit) || 10,
@@ -14,7 +13,6 @@ const getAllUser = asyncHandler(async (req, res) => {
         role: req.query.role,
         isActive: req.query.isActive !== undefined ? req.query.isActive === 'true' : undefined
       };
-
         const result = await getAllUsers(options);
         res.json({
           message: 'Users retrieved successfully',
@@ -100,10 +98,22 @@ const updateUsers = asyncHandler(async (req, res) => {
   });
 });
 
+const deleteUsers = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const user = await deleteUser(id);
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+  res.json({
+    message: 'User deleted successfully',
+    data: user
+  });
+});
 
     module.exports = {
         getAllUser,
         getUserByID,
         createUsers,
-        updateUsers
+        updateUsers,
+        deleteUsers
  };
