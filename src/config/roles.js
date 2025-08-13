@@ -15,7 +15,11 @@ const roles = [
       "create_permission",
       "read_permission",
       "update_permission",
-      "delete_permission"
+      "delete_permission",
+      "create_category",
+      "read_category",
+      "update_category",
+      "delete_category"
     ]
   },
   {
@@ -26,7 +30,11 @@ const roles = [
       "update_user",
       "delete_user",
       "update_own_user",
-      "delete_own_user", 
+      "delete_own_user",
+      "create_category",
+      "read_category",
+      "update_category",
+      "delete_category"
     ]
   },
   {
@@ -35,6 +43,15 @@ const roles = [
       "read_user",
       "update_own_user",
       "delete_own_user",
+      "read_category",
+      "create_category",
+      "update_category"
+    ]
+  },
+  {
+    name: "guest",
+    permissions: [
+      "read_category"
     ]
   }
 ];

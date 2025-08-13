@@ -40,6 +40,13 @@ const getUserByID = asyncHandler(async (req, res) => {
 });
 const createUsers = asyncHandler(async (req, res) => {
     const { username, email, password, firstName, lastName, role } = req.body;
+    
+    // Handle avatar upload if file is provided
+    let avatarUrl = null;
+    if (req.file) {
+        const { uploadAvatarToS3 } = require('../middleware/upload.js');
+        avatarUrl = await uploadAvatarToS3(req.file);
+    }
 
     // Convert role name to ObjectId
     let roleId;
@@ -66,7 +73,8 @@ const createUsers = asyncHandler(async (req, res) => {
         password,
         firstName,
         lastName,
-        role: roleId
+        role: roleId,
+        avatar: avatarUrl
     });
 
     res.status(201).json({
@@ -80,15 +88,30 @@ const updateUsers = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { username, email, firstName, lastName, role, isActive } = req.body;
 
-  // Find the user by ID
-  const user = await updateUser(id, {
+  // Handle avatar upload if file is provided
+  let avatarUrl = null;
+  if (req.file) {
+    const { uploadAvatarToS3 } = require('../middleware/upload.js');
+    avatarUrl = await uploadAvatarToS3(req.file);
+  }
+
+  // Prepare update data
+  const updateData = {
     username,
     email,
     firstName,
     lastName,
     role,
     isActive
-  });
+  };
+
+  // Only add avatar to update data if a new file was uploaded
+  if (avatarUrl) {
+    updateData.avatar = avatarUrl;
+  }
+
+  // Find the user by ID
+  const user = await updateUser(id, updateData);
   if (!user) {
     return res.status(404).json({ message: 'User not found' });
   }

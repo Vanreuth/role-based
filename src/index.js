@@ -4,7 +4,8 @@ const connectDB = require('./config/dbConnect.js');
 const authRouter = require('./routes/auth.js');
 const userRouter = require('./routes/user.js');
 const roleRouter = require('./routes/role.js');
-const permissionRouter = require('./routes/permisson.js')
+const permissionRouter = require('./routes/permisson.js');
+const categoryRouter = require('./routes/category.js')
 const {errorHandler} = require('./middleware/errorhandler.js');
 //Connect to MongoDB
 connectDB();
@@ -12,13 +13,15 @@ connectDB();
 const app = express();
 
 //Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 //Routes
 app.use('/api/auth', authRouter);
 app.use('/api/user', userRouter);
 app.use('/api/role', roleRouter);
 app.use('/api/permission', permissionRouter);
+app.use('/api/category', categoryRouter);
 
 app.use(errorHandler);
 //Start the server

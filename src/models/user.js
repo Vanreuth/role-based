@@ -34,6 +34,11 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    phone:{
+      type: String,
+      trim: true,
+      match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
+    },
     role: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -41,6 +46,9 @@ const userSchema = new mongoose.Schema(
         required: true,
       },
     ],
+    avatar: {
+    type: String,
+    },
     isActive: {
       type: Boolean,
       default: true,
@@ -52,14 +60,29 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    addresses: [{
+    type: {
+      type: String,
+      enum: ['home', 'work', 'other'],
+      default: 'home'
+    },
+    street: { type: String},
+    city: { type: String },
+    state: { type: String},
+    postalCode: { type: String },
+    country: { type: String },
+    isDefault: { type: Boolean }
+  }],
+  wishlist: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product'
+  }]
   },
   {
     timestamps: true,
   }
 );
 userSchema.plugin(mongoosePaginate);
-
-
 // Hash password before saving
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
