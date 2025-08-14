@@ -8,7 +8,7 @@ const orderItemSchema = new mongoose.Schema({
     required: true
   },
   name: { type: String, required: true },
-  sku: { type: String, required: true },
+  sku: { type: String },
   quantity: {
     type: Number,
     required: true,
@@ -28,7 +28,6 @@ const orderItemSchema = new mongoose.Schema({
 const orderSchema = new mongoose.Schema({
   orderNumber: {
     type: String,
-    required: true,
     unique: true
   },
   user: {

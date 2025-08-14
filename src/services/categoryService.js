@@ -2,27 +2,38 @@ const Category = require('../models/category');
 const asyncHandler = require('express-async-handler');
 
 const getCategories = asyncHandler(async (options = {}) => {
-    const {
-      page = 1,
-      limit = 10,
-      parent = null,
-      isActive = true,
-      populate = 'parent subcategories'
-    } = options;
+  const {
+    page = 1,
+    limit = 10,
+    sortBy = 'name',
+    sortOrder = 'asc',
+    parent = null,
+    isActive = true,
+    populate = 'parent subcategories',
+    search = ''
+  } = options;
 
-    const query = { isActive };
-    if (parent !== null) {
-      query.parent = parent;
-    }
+  const query = { isActive };
+  if (parent !== null) {
+    query.parent = parent;
+  }
 
-    const paginateOptions = {
-      page: parseInt(page),
-      limit: parseInt(limit),
-      populate
-    };
+  if (search) {
+    query.name = { $regex: search, $options: 'i' };
+  }
 
-    return await Category.paginate(query, paginateOptions);
-  });
+  const sort = {};
+  sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+  const paginateOptions = {
+    page: parseInt(page),
+    limit: parseInt(limit),
+    populate,
+    sort
+  };
+
+  return await Category.paginate(query, paginateOptions);
+});
 
   const getCategoryById = asyncHandler(async (id) => {
     const category = await Category.findById(id).populate('parent subcategories');
@@ -39,7 +50,8 @@ const getCategories = asyncHandler(async (options = {}) => {
     }
     return category;
   });
-const createCategory = asyncHandler(async (categoryData) => {
+
+  const createCategory = asyncHandler(async (categoryData) => {
     // If parent is specified, verify it exists
     if (categoryData.parent) {
       const parentCategory = await Category.findById(categoryData.parent);

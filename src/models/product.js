@@ -42,7 +42,6 @@ const productSchema = new mongoose.Schema({
   },
   sku: {
     type: String,
-    required: [true, 'SKU is required'],
     unique: true,
     trim: true,
     uppercase: true
@@ -75,9 +74,8 @@ const productSchema = new mongoose.Schema({
     trim: true
   }],
   images: [{
-    url: { type: String, required: true },
-    alt: { type: String },
-    isMain: { type: Boolean, default: false }
+    type: String,
+    required: true
   }],
   inventory: {
     quantity: {
@@ -95,10 +93,6 @@ const productSchema = new mongoose.Schema({
       default: true
     }
   },
-  specifications: [{
-    name: { type: String, required: true },
-    value: { type: String, required: true }
-  }],
   variants: [{
     name: { type: String, required: true }, // e.g., "Color", "Size"
     values: [{ type: String, required: true }] // e.g., ["Red", "Blue"], ["S", "M", "L"]

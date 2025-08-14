@@ -1,4 +1,4 @@
-
+const { uploadAvatarToS3 } = require('../middleware/upload.js');
 const Role = require('../models/role');
 const { getAllUsers,getUserById,createUser,updateUser,deleteUser} =require("../services/userServices.js");
 const asyncHandler = require('express-async-handler');
@@ -44,10 +44,8 @@ const createUsers = asyncHandler(async (req, res) => {
     // Handle avatar upload if file is provided
     let avatarUrl = null;
     if (req.file) {
-        const { uploadAvatarToS3 } = require('../middleware/upload.js');
         avatarUrl = await uploadAvatarToS3(req.file);
     }
-
     // Convert role name to ObjectId
     let roleId;
     if (role) {

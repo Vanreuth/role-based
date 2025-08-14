@@ -5,7 +5,10 @@ const authRouter = require('./routes/auth.js');
 const userRouter = require('./routes/user.js');
 const roleRouter = require('./routes/role.js');
 const permissionRouter = require('./routes/permisson.js');
-const categoryRouter = require('./routes/category.js')
+const categoryRouter = require('./routes/category.js');
+const productRouter = require('./routes/product.js');
+const orderRouter = require('./routes/order.js');
+const cartRouter = require('./routes/cart.js')
 const {errorHandler} = require('./middleware/errorhandler.js');
 //Connect to MongoDB
 connectDB();
@@ -22,6 +25,9 @@ app.use('/api/user', userRouter);
 app.use('/api/role', roleRouter);
 app.use('/api/permission', permissionRouter);
 app.use('/api/category', categoryRouter);
+app.use('/api/product', productRouter);
+app.use('/api/order', orderRouter);
+app.use('/api/cart', cartRouter);
 
 app.use(errorHandler);
 //Start the server

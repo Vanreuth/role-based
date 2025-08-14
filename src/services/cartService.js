@@ -28,7 +28,7 @@ const asyncHandler = require('express-async-handler');
       throw new Error('Insufficient inventory');
     }
 
-    let cart = await this.getCart(userId);
+    let cart = await getCart(userId);
 
     // Check if item already exists in cart
     const existingItemIndex = cart.items.findIndex(item => 

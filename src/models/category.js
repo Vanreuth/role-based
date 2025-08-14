@@ -22,7 +22,6 @@ const categorySchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    trim: true
   },
   parent: {
     type: mongoose.Schema.Types.ObjectId,

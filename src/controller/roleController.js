@@ -1,12 +1,28 @@
 const asyncHandler = require('express-async-handler');
 const {getAllRoles,getRoleById,getRoleByName,createRole,updateRole} = require('../services/roleServices.js');
+const { search } = require('../routes/role.js');
 
 
 const getAllRole = asyncHandler(async (req, res) => {
-    const roles = await getAllRoles();
+    const options={
+        page: req.query.page || 1,
+        limit: req.query.limit || 10,
+        sortBy: req.query.sortBy || 'name',
+        sortOrder: req.query.sortOrder || 'asc',
+        search: req.query.search || '',
+        isActive: req.query.isActive || true
+    }
+    const roles = await getAllRoles(options);
     res.json({
         message: 'Roles retrieved successfully',
-        data: roles
+        data: roles.docs,
+        pagination:{
+            page: roles.page,
+            limit: roles.limit,
+             totalDocs: roles.totalDocs,
+          hasNextPage: roles.hasNextPage,
+          hasPrevPage: roles.hasPrevPage
+        }
     });
 });
 const getRoleByID = asyncHandler(async (req, res) => {

@@ -15,8 +15,27 @@ const {
 } = require('../services/permissonServices.js');
 
 const getAllPermission = asyncHandler(async (req, res) => {
-  const permissions = await getAllPermissions();
-  res.json(permissions);
+  const options = {
+    page: req.query.page || 1,
+    limit: req.query.limit || 10,
+    sortBy: req.query.sortBy || 'name',
+    sortOrder: req.query.sortOrder || 'asc',
+    search: req.query.search || '',
+    resource: req.query.resource || '',
+    isActive: req.query.isActive || true
+  };
+  const permissions = await getAllPermissions(options);
+  res.json({
+    message: 'Permissions retrieved successfully',
+    data: permissions.docs,
+    pagination: {
+      page: permissions.page,
+      limit: permissions.limit,
+      totalDocs: permissions.totalDocs,
+      hasNextPage: permissions.hasNextPage,
+      hasPrevPage: permissions.hasPrevPage
+    }
+  });
 });
 
 const getPermissionByID = asyncHandler(async (req, res) => {

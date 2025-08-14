@@ -38,7 +38,8 @@ const createOrder = asyncHandler(async (userId, orderData) => {
       shippingAddress: orderData.shippingAddress,
       billingAddress: orderData.billingAddress || orderData.shippingAddress,
       payment: {
-        method: orderData.paymentMethod
+        method: orderData.paymentMethod,
+        status: orderData.paymentStatus || 'pending',
       },
       pricing: {
         subtotal,
@@ -52,7 +53,7 @@ const createOrder = asyncHandler(async (userId, orderData) => {
 
     // Update inventory for all items
     for (const item of cart.items) {
-      await ProductService.updateInventory(item.product._id, item.quantity);
+      await updateInventory(item.product._id, item.quantity);
     }
 
     // Clear the cart
@@ -61,6 +62,7 @@ const createOrder = asyncHandler(async (userId, orderData) => {
 
     return await Order.findById(order._id).populate('items.product user');
   });
+
 
   const getOrders = asyncHandler(async (userId, options = {}) => {
     const {
@@ -102,7 +104,7 @@ const createOrder = asyncHandler(async (userId, orderData) => {
 
     return order;
   });
-
+  
   const updateOrderStatus = asyncHandler(async (orderId, status, updateData = {}) => {
     const order = await Order.findById(orderId);
     if (!order) {
@@ -161,11 +163,52 @@ const createOrder = asyncHandler(async (userId, orderData) => {
 
     return await Order.paginate(query, paginateOptions);
   });
+  const getUserOrders = asyncHandler(async (userId, options = {}) => {
+    const { page = 1, limit = 10 } = options;
+
+    const paginateOptions = {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      sort: '-createdAt',
+      populate: 'items.product'
+    };
+
+    return await Order.paginate({ user: userId }, paginateOptions);
+  });
+
+  const getOrderStats = asyncHandler(async () => {
+    const stats = await Order.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalOrders: { $sum: 1 },
+          totalRevenue: { $sum: '$total' },
+          averageOrderValue: { $avg: '$total' }
+        }
+      }
+    ]);
+
+    const statusStats = await Order.aggregate([
+      {
+        $group: {
+          _id: '$orderStatus',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    return {
+      overall: stats[0] || { totalOrders: 0, totalRevenue: 0, averageOrderValue: 0 },
+      byStatus: statusStats
+    };
+  });
 
 module.exports = {
   createOrder,
   getOrders,
   getOrderById,
   updateOrderStatus,
-  getAllOrders
+  getAllOrders,
+  getUserOrders,
+  getOrderStats
 };

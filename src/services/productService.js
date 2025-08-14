@@ -8,7 +8,6 @@ const createProduct = asyncHandler(async (productData) => {
     if (!category) {
       throw new Error('Category not found');
     }
-
     const product = new Product(productData);
     await product.save();
     
