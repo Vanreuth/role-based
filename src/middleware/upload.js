@@ -1,72 +1,67 @@
-const { S3Client } = require('@aws-sdk/client-s3');
-const { Upload } = require('@aws-sdk/lib-storage');
-const multer = require('multer');
-const path = require ('path');
+const express = require("express");
+const multer = require("multer");
+const path = require("path");
+const { S3Client } = require("@aws-sdk/client-s3");
+const { Upload } = require("@aws-sdk/lib-storage");
 
-// Configure AWS
+const router = express.Router();
+
+// Configure Cloudflare R2
 const s3 = new S3Client({
-    region: process.env.AWS_REGION,
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    },
+  region: "auto", // R2 doesn’t need a region
+  endpoint: `https://${process.env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: process.env.CLOUDFLARE_ACCESS_KEY_ID,
+    secretAccessKey: process.env.CLOUDFLARE_SECRET_ACCESS_KEY,
+  },
 });
-// Multer configuration for memory storage
-const storage = multer.memoryStorage();
 
+// Multer configuration
+const storage = multer.memoryStorage();
 const fileFilter = (req, file, cb) => {
-  // Allowed ext
-  const filetypes = /jpeg|jpg|png|gif/
-  // Check ext
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase())
-  // Check mime
-  const mimetype = filetypes.test(file.mimetype)
+  const filetypes = /jpeg|jpg|png|gif/;
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = filetypes.test(file.mimetype);
 
   if (mimetype && extname) {
-    return cb(null, true)
+    cb(null, true);
   } else {
-    cb('Error: Images Only!')
+    cb("Error: Images Only!");
   }
-}
+};
 
 const upload = multer({
   storage,
   fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
-// Upload single image to S3
-const uploadToS3 = async (file, folder = 'products') => {
+// Upload single image to R2
+const uploadToR2 = async (file, folder = "products") => {
   const params = {
-    Bucket: process.env.AWS_S3_BUCKET_NAME,
-    Key: `avatars/${Date.now()}-${file.originalname}`,
+    Bucket: process.env.CLOUDFLARE_BUCKET_NAME,
+    Key: `${folder}/${Date.now()}-${file.originalname}`,
     Body: file.buffer,
     ContentType: file.mimetype,
-    ACL: 'public-read'
   };
-  const upload = new Upload({
-    client: s3,
-    params: params
-  });
-  
-  const result = await upload.done();
-  return result.Location;
+
+  const uploader = new Upload({ client: s3, params });
+  await uploader.done();
+
+  // Works only if bucket is public or bound to domain
+  return `https://${process.env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com/${process.env.CLOUDFLARE_BUCKET_NAME}/${params.Key}`;
 };
-// Upload avatar image to S3
-const uploadAvatarToS3 = async (file) => {
-  return await uploadToS3(file, 'avatars');
-};
-// Upload multiple images to S3
-const uploadMultipleToS3 = async (files, folder = 'products') => {
-  const uploadPromises = files.map(file => uploadToS3(file, folder));
-  return await Promise.all(uploadPromises);
-};
+
+// Upload avatar image
+const uploadAvatarToR2 = async (file) => uploadToR2(file, "avatars");
+
+// Upload multiple images
+const uploadMultipleToR2 = async (files, folder = "products") =>
+  Promise.all(files.map((file) => uploadToR2(file, folder)));
 
 module.exports = {
   upload,
-  uploadToS3,
-  uploadMultipleToS3,
-  uploadAvatarToS3
+  uploadToR2,
+  uploadMultipleToR2,
+  uploadAvatarToR2,
 };

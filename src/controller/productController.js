@@ -10,12 +10,12 @@ const {
   updateInventory
 } = require('../services/productService');
 const Product = require('../models/product');
-const {uploadMultipleToS3} = require('../middleware/upload');
+const {uploadMultipleToR2} = require('../middleware/upload');
 
 const createProductController = asyncHandler(async (req, res) => {
   let image = [];
   if (req.files && req.files.length > 0) {
-    image = await uploadMultipleToS3(req.files);
+    image = await uploadMultipleToR2(req.files);
   }
   const productData = {
       name: req.body.name,
@@ -24,7 +24,8 @@ const createProductController = asyncHandler(async (req, res) => {
       cost: parseFloat(req.body.cost),
       category: req.body.category,
       images: image, // array of URLs
-      inventory: req.body.inventory ? JSON.parse(req.body.inventory) : undefined
+      inventory: req.body.inventory ? JSON.parse(req.body.inventory) : undefined,
+      sku: req.body.sku
     };
   const product = await createProduct(productData);
   res.status(201).json(product);

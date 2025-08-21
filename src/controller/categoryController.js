@@ -1,7 +1,9 @@
 const {createCategory,getCategories,getCategoryById,updateCategory,deleteCategory} = require('../services/categoryService');
 const asyncHandler = require('express-async-handler');
+const {clearCache} = require('../middleware/cache.js');
 const createCategoryHandler = asyncHandler(async (req, res) => {
     const category = await createCategory(req.body);
+    await clearCache('/api/category');
     res.status(201).json({
         success: true,
         message: 'Category created successfully',
@@ -43,6 +45,7 @@ const getCategoryByIdHandler = asyncHandler(async (req, res) => {
 const updateCategoryHandler = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const category = await updateCategory(id, req.body);
+    await clearCache(`/api/category/${id}`);
     res.status(200).json({
         success: true,
         message: 'Category updated successfully',
@@ -52,6 +55,8 @@ const updateCategoryHandler = asyncHandler(async (req, res) => {
 const deleteCategoryHandler = asyncHandler(async (req, res) => {
     const { id } = req.params;
     await deleteCategory(id);
+    await clearCache('/api/category');
+    await clearCache(`/api/category/${id}`);
     res.status(204).json({
         success: true,
         message: 'Category deleted successfully'
