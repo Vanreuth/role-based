@@ -1,0 +1,10 @@
+- name: Setup Portainer
+  hosts: all
+  become: yes
+  tasks:
+    - name: Create a volume
+      ansible.builtin.shell: |
+        docker volume create portainer_data
+    - name: Run portainer
+      ansible.builtin.shell: |
+        docker run -d -p 9000:9000 -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce:2.21.4

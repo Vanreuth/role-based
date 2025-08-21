@@ -1,0 +1,54 @@
+name: Deploy to vanreuth.site
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+     
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.CONTABO_HOST }}
+        username: ${{ secrets.CONTABO_USER }}
+        key: ${{ secrets.CONTABO_SSH_KEY }}
+        
+        script: |
+          cd /var/www/testdevops
+          
+          # Backup and stash changes
+          git stash push -m "Auto-stash before deployment $(date)"
+          
+          # Pull latest code
+          git pull origin main
+          
+          # Install dependencies
+          npm install --omit=dev
+          
+          # Create environment file
+          cat > .env << EOF
+          PORT=3000
+          MONGO_URI=${{ secrets.MONGO_URI }}
+          NODE_ENV=production
+          DOMAIN=vanreuth.site
+          HTTPS_ENABLED=true
+          EOF
+          
+          # Restart application
+          source ~/.nvm/nvm.sh
+          pm2 restart testdevops || pm2 start src/app.js --name testdevops
+          pm2 save
+          
+          # Ensure Nginx is running
+          sudo systemctl reload nginx
+          
+          echo "🚀 Deployment complete!"
+          echo "🌐 Your site: https://vanreuth.site"
+          echo "🔒 SSL Status: $(curl -s -o /dev/null -w "%{http_code}" https://vanreuth.site)"
+          pm2 status

@@ -3,7 +3,6 @@ ENV TZ=Asia/Phnom_Penh
 # Set working directory
 WORKDIR /app
 
-# Install app dependencies
 COPY package*.json ./
 RUN npm install
 RUN apt-get update && apt install vim -y

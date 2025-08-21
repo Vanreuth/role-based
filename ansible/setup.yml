@@ -1,0 +1,24 @@
+- hosts: contabo
+  become: true
+  tasks:
+    - name: Update packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install dependencies
+      apt:
+        name:
+          - curl
+          - git
+          - ufw
+          - build-essential
+          - nginx
+          - redis-server
+          - mongodb
+        state: present
+
+    - name: Install Node.js
+      shell: |
+        curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+        apt-get install -y nodejs

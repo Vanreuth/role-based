@@ -11,7 +11,6 @@ const {
 } = require('../services/productService');
 const Product = require('../models/product');
 const {uploadMultipleToS3} = require('../middleware/upload');
-const { search } = require('../routes/product');
 
 const createProductController = asyncHandler(async (req, res) => {
   let image = [];

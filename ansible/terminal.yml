@@ -1,0 +1,9 @@
+- name: Setup EC2 instance
+  hosts: ec2
+  become: yes
+  tasks:
+    - name: Clone git repo
+      ansible.builtin.shell: |
+        pwd
+        whoami
+        git clone https://github.com/KimangKhenng/devops-cadt-2.git

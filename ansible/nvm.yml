@@ -1,0 +1,61 @@
+---
+- name: Set up NVM and Node.js on Ubuntu 22.04
+  hosts: all
+  become: yes # To run tasks as root or with sudo privileges
+
+  tasks:
+    - name: Ensure required dependencies are installed
+      apt:
+        name:
+          - curl
+          - build-essential
+          - libssl-dev
+        state: present
+        update_cache: yes
+
+    - name: Download and install NVM
+      shell: >
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
+      args:
+        creates: /{{ ansible_user }}/.nvm/nvm.sh
+      environment:
+        HOME: "/{{ ansible_user }}"
+
+    - name: Ensure NVM is loaded
+      shell: . /{{ ansible_user }}/.nvm/nvm.sh
+      args:
+        executable: /bin/bash
+
+    - name: Add NVM initialization to bashrc
+      lineinfile:
+        path: /{{ ansible_user }}/.bashrc
+        regexp: "export NVM_DIR"
+        line: |
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+        insertafter: EOF
+        state: present
+
+    - name: Source bashrc to activate NVM
+      shell: source /{{ ansible_user }}/.bashrc
+      args:
+        executable: /bin/bash
+
+    - name: Install Node.js using NVM (latest LTS version)
+      shell: . /{{ ansible_user }}/.nvm/nvm.sh && nvm install --lts
+      args:
+        executable: /bin/bash
+
+    - name: Set the default Node.js version
+      shell: . /{{ ansible_user }}/.nvm/nvm.sh && nvm alias default lts/*
+      args:
+        executable: /bin/bash
+
+    - name: Verify Node.js installation
+      shell: . /{{ ansible_user }}/.nvm/nvm.sh && node --version
+      args:
+        executable: /bin/bash
+      register: node_version
+
+    - debug:
+        msg: "Node.js version {{ node_version.stdout }} is successfully installed"
